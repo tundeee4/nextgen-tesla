@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NextGen.Tesla | Global Investment Opportunities</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg-dark: #020b18;
+      --card-bg: rgba(6, 26, 55, 0.85);
+      --card-border: #004080;
+      --primary: #0080ff;
+      --primary-hover: #0066cc;
+      --accent: #10b981;
+      --warning: #ef4444;
+      --gold: #ffcc00;
+      --gold-hover: #e6b800;
+      --text-main: #f8fafc;
+      --text-muted: #8ab4f8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.5;
+      font-size: 14px;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(0, 102, 204, 0.2) 0%, rgba(2, 11, 24, 0.95) 75%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    .hidden { display: none !important; }
+
+    /* --- IMPORTANT NOTICE MODAL --- */
+    .notice-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 15px;
+    }
+
+    .notice-modal-card {
+      background: #1e1113;
+      border: 2px solid var(--warning);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      padding: 2rem 1.8rem;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .notice-modal-card i.main-icon { font-size: 3rem; color: var(--warning); margin-bottom: 0.8rem; }
+    .notice-modal-card h3 { font-size: 1.6rem; color: #fff; margin-bottom: 0.8rem; }
+    .notice-modal-card p { color: #fca5a5; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.2rem; text-align: left; }
+    .notice-contact { background: rgba(239, 68, 68, 0.1); padding: 0.7rem; border-radius: 8px; font-weight: bold; color: #fff; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    /* --- Header Navigation --- */
+    header {
+      background-color: rgba(2, 11, 24, 0.95);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--card-border);
+      width: 100%;
+    }
+
+    .nav-container {
+      width: 100%;
+      max-width: 100%;
+      padding: 0.8rem 2rem;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tesla-logo-svg {
+      width: 32px;
+      height: 32px;
+      fill: #e82127;
+    }
+
+    .logo { font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+    .logo span { color: var(--primary); }
+    .nav-buttons { display: flex; gap: 0.8rem; align-items: center; }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-block;
+      text-align: center;
+      border: none;
+    }
+
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-gold { background-color: var(--gold); color: #000; font-weight: 700; }
+    .btn-gold:hover { background-color: var(--gold-hover); }
+    .btn-outline { background-color: transparent; color: var(--text-main); border: 1px solid var(--card-border); }
+    .btn-outline:hover { background-color: var(--card-border); }
+
+    /* --- DASHBOARD SPECIFIC LAYOUT --- */
+    .dash-nav-bar {
+      background: #0066cc;
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.6rem 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      width: 100%;
+    }
+
+    .dash-nav-bar a { color: #ffffff; transition: color 0.2s; padding: 0.2rem 0.4rem; }
+    .dash-nav-bar a:hover, .dash-nav-bar a.active { color: #ffcc00; text-decoration: underline; }
+
+    .dashboard-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .dash-user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(2, 11, 24, 0.9);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.8rem 1.5rem;
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .dash-welcome { display: flex; align-items: center; gap: 0.8rem; }
+    .dash-welcome i { font-size: 2rem; color: var(--gold); }
+
+    .dash-affiliate {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.4rem 0.7rem;
+      border-radius: 4px;
+      border: 1px solid var(--card-border);
+      font-size: 0.75rem;
+    }
+
+    .dash-affiliate input {
+      background: #004080;
+      border: 1px solid #0066cc;
+      border-radius: 12px;
+      color: #ffffff;
+      padding: 2px 10px;
+      width: 280px;
+      font-size: 0.75rem;
+      outline: none;
+    }
+
+    .dash-section-title {
+      text-align: center;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 1.5rem 0 1rem 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .tradingview-widget-container {
+      width: 100%;
+      height: 380px;
+      margin: 0 auto 1.5rem auto;
+      border: 1px solid var(--card-border);
+      background: #000;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding: 0 1.5rem;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .overview-card {
+      background: rgba(4, 20, 42, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 0;
+      padding: 1rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      box-shadow: inset 0 0 10px rgba(0, 102, 204, 0.2);
+    }
+
+    .overview-card-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0.8rem;
+    }
+
+    .overview-card-icon { font-size: 2.2rem; color: var(--gold); }
+    .overview-card-icon-blue { font-size: 2.2rem; color: #38bdf8; }
+
+    .overview-card-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .overview-card-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .overview-card-val { font-size: 1.3rem; font-weight: bold; color: #fff; margin-top: 0.2rem; }
+
+    .btn-dash-action {
+      background: linear-gradient(180deg, #ffcc00 0%, #d97706 100%);
+      color: #000;
+      font-weight: bold;
+      font-size: 0.7rem;
+      border: none;
+      border-radius: 12px;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      margin-top: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .deposit-withdraw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 0 1.5rem;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .deposit-withdraw-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* --- DEPOSIT CONTENT STYLING --- */
+    .deposit-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      padding: 2rem;
+      margin: 1.5rem;
+      text-align: center;
+    }
+
+    .btc-address-box {
+      background: #020b18;
+      border: 1px dashed var(--primary);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .crypto-bar {
+      background: #020b18;
+      border-top: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.8rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .crypto-providers-group {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .crypto-provider {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .crypto-provider img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .footer-ticker {
+      background: #01060e;
+      padding: 0.5rem 1.5rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .feature-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .container { width: 100%; max-width: 100%; margin: 0 auto; padding: 3rem 2rem; }
+    .section-title { text-align: center; font-size: 2.1rem; margin-bottom: 0.8rem; color: #fff; }
+    .section-subtitle { text-align: center; color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1rem; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; backdrop-filter: blur(8px); }
+
+    .hero { text-align: center; padding: 5rem 1.5rem; background: radial-gradient(circle at center, rgba(0, 102, 204, 0.15) 0%, transparent 70%); }
+    .hero h1 { font-size: 3.2rem; margin-bottom: 1rem; }
+    .hero p { max-width: 800px; margin: 0 auto 1.8rem auto; color: var(--text-muted); font-size: 1.1rem; }
+    .hero-actions { display: flex; justify-content: center; gap: 1rem; }
+
+    .about-text { color: var(--text-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 1.5rem; }
+    .feature-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 1.5rem; border-radius: 12px; transition: transform 0.2s ease; backdrop-filter: blur(8px); }
+    .feature-card:hover { transform: translateY(-3px); }
+    .feature-icon { font-size: 2.2rem; color: var(--primary); margin-bottom: 0.8rem; }
+
+    .plan-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 2rem 1.5rem; text-align: center; backdrop-filter: blur(8px); }
+    .plan-card.popular { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 102, 204, 0.3); }
+    .plan-rate { font-size: 2.5rem; font-weight: bold; color: var(--accent); margin: 0.8rem 0; }
+    .plan-details { margin: 1.2rem 0; color: var(--text-muted); font-size: 0.95rem; }
+
+    .metrics-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; background: var(--card-bg); border: 1px solid var(--card-border); padding: 2rem; border-radius: 12px; margin-top: 2.5rem; text-align: center; backdrop-filter: blur(8px); }
+    .metric-val { font-size: 2rem; font-weight: bold; color: var(--primary); }
+    .metric-label { color: var(--text-muted); font-size: 0.95rem; }
+
+    .stats-table-container { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.5rem; overflow-x: auto; backdrop-filter: blur(8px); }
+    .stats-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .stats-table th, .stats-table td { padding: 0.8rem; border-bottom: 1px solid var(--card-border); font-size: 0.95rem; }
+    .stats-table th { color: var(--text-muted); font-weight: 600; }
+
+    .money-banner { text-align: center; margin: 2.5rem 0; padding: 2rem; background: rgba(16, 185, 129, 0.05); border: 1px dashed var(--accent); border-radius: 12px; }
+    .money-banner i { font-size: 3rem; color: var(--accent); }
+
+    .ticker-container { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 0.8rem; height: 280px; overflow-y: hidden; backdrop-filter: blur(8px); }
+    .ticker-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-bottom: 1px solid var(--card-border); animation: slideIn 0.5s ease-out; }
+    .badge { padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .badge-pending { background: #854d0e; color: #fef08a; }
+    .badge-confirmed { background: #065f46; color: #a7f3d0; }
+
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 15px; }
+    .modal-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; width: 100%; max-width: 420px; padding: 2rem; position: relative; }
+    .modal-card input, .modal-card textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--bg-dark); color: white; margin-top: 5px; margin-bottom: 15px; font-size: 0.95rem; }
+
+    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+
+    .live-chat-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #1e293b;
+      color: #fff;
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      z-index: 999;
+      transition: transform 0.2s ease;
+    }
+
+    .live-chat-btn:hover { transform: scale(1.05); }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- ADMIN MEMBER MANAGEMENT STYLES --- */
+    .admin-stats-card {
+      background: rgba(4, 20, 42, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-search-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #020b18;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: white;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .admin-members-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .admin-members-table th, .admin-members-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--card-border);
+      text-align: left;
+    }
+    .admin-members-table th {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    .admin-edit-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      text-align: left;
+      margin-top: 1rem;
+    }
+    @media (max-width: 600px) {
+      .admin-edit-form { grid-template-columns: 1fr; }
+    }
+  </style></head><body>
+
+  <canvas id="bg-canvas"></canvas>
+  <div class="bg-overlay"></div>
+
+  <div id="notice-modal" class="notice-modal-overlay">
+    <div class="notice-modal-card">
+      <i class="fa-solid fa-triangle-exclamation main-icon"></i>
+      <h3>IMPORTANT NOTICE!</h3>
+      <p>
+        Please Note that All Deposits/Payment Should Be Made Directly To The Company Account/Bitcoin Wallet Address (Contact live support to Get Deposit ID). 
+        <br/><br/>
+        <strong>No Payments/Deposit Should Be Made To Any ACCOUNT MANAGER.</strong> The Company Will Not Be Held Responsible For Any Loss That Comes With Making Payment To Any Company Manager. Thank You For Your Understanding And Cooperation.
+      </p>
+      <div class="notice-contact">
+        For more enquires contact: <a href="mailto:info@nextgen.Tesla.in" style="color: #fff; text-decoration: underline;">info@nextgen.Tesla.in</a>
+      </div>
+      <button class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.05rem; width: 100%;" onclick="closeNotice()">I Understand & Agree</button>
+    </div>
+  </div>
+
+  <div id="auth-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <span class="close-modal" onclick="closeAuth()">&times;</span>
+      <h2 id="auth-title" style="margin-bottom: 1rem; color: #fff;">Member Login</h2>
+      <form onsubmit="handleAuthSubmit(event)">
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Username or Email</label>
+        <input type="text" id="auth-username" required placeholder="Enter your username" />
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Email Address (For Registration)</label>
+        <input type="email" id="auth-email" placeholder="Enter your email" />
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Password</label>
+        <input type="password" id="auth-password" required placeholder="Enter password" />
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Proceed</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="chat-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 480px;">
+      <span class="close-modal" onclick="closeChat()">&times;</span>
+      <h2 style="margin-bottom: 0.5rem; color: #fff;"><i class="fa-solid fa-headset" style="color:var(--primary); margin-right:8px;"></i>Customer Support</h2>
+      <div id="chat-status-display" style="background: rgba(0,102,204,0.15); border: 1px solid var(--card-border); padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem; color: #fff; line-height: 1.4;">
+      </div>
+      <form onsubmit="handleChatSubmit(event)">
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Your Email</label>
+        <input type="email" id="chat-user-email" required placeholder="Enter your email address" />
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Message</label>
+        <textarea id="chat-user-msg" rows="3" required placeholder="How can we help you today?"></textarea>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="admin-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 500px;">
+      <span class="close-modal" onclick="closeAdmin()">&times;</span>
+      <h2 style="margin-bottom: 0.5rem; color: #fff;"><i class="fa-solid fa-user-shield" style="color:var(--gold); margin-right:8px;"></i>Admin Panel</h2>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Update customer service status message for members.</p>
+      <form onsubmit="handleAdminUpdate(event)">
+        <label style="font-size: 0.85rem; color: var(--text-muted);">Customer Service Status / Message</label>
+        <textarea id="admin-status-input" rows="4" required placeholder="Enter current support status/message..."></textarea>
+        <button type="submit" class="btn btn-gold" style="width: 100%;">Save & Update Message</button>
+      </form>
+      <hr style="border-color: var(--card-border); margin: 1.5rem 0;" />
+      <button type="button" class="btn btn-primary" style="width: 100%; font-weight: bold;" onclick="openAdminMemberManagement()">Manage Registered Members</button>
+    </div>
+  </div>
+
+  <!-- ADMIN MEMBER MANAGEMENT MODAL -->
+  <div id="admin-member-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+      <span class="close-modal" onclick="closeAdminMemberModal()">&times;</span>
+      <h2 style="margin-bottom: 0.5rem; color: #fff;"><i class="fa-solid fa-users-gear" style="color:var(--gold); margin-right:8px;"></i>Member Management</h2>
+      
+      <div class="admin-stats-card">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">TOTAL REGISTERED MEMBERS</div>
+          <div id="admin-total-members-count" style="font-size: 1.8rem; font-weight: bold; color: var(--gold);">0</div>
+        </div>
+        <i class="fa-solid fa-users" style="font-size: 2rem; color: var(--primary);"></i>
+      </div>
+
+      <input type="text" id="admin-member-search" class="admin-search-input" placeholder="Search members by username or email..." oninput="renderAdminMemberList()" />
+
+      <div style="overflow-x: auto;">
+        <table class="admin-members-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Registration Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-members-list-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN EDIT MEMBER DASHBOARD MODAL -->
+  <div id="admin-edit-member-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 650px; max-height: 90vh; overflow-y: auto;">
+      <span class="close-modal" onclick="closeAdminEditMemberModal()">&times;</span>
+      <h2 style="margin-bottom: 0.5rem; color: #fff;"><i class="fa-solid fa-user-pen" style="color:var(--gold); margin-right:8px;"></i>Edit Member Dashboard</h2>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">Editing data for member: <strong id="admin-edit-target-username" style="color:#fff;"></strong></p>
+
+      <form onsubmit="handleAdminSaveMemberData(event)" class="admin-edit-form">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Active Deposits ($)</label>
+          <input type="text" id="edit-active-deposits" required />
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Your Balance ($)</label>
+          <input type="text" id="edit-account-balance" required />
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Added Bonus ($)</label>
+          <input type="text" id="edit-added-bonus" required />
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Last Deposit ($)</label>
+          <input type="text" id="edit-last-deposit" required />
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Withdrawal ($)</label>
+          <input type="text" id="edit-withdrawal" required />
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-muted);">Email Address</label>
+          <input type="email" id="edit-user-email" />
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 10px;">
+          <button type="submit" class="btn btn-gold" style="flex: 1;">Save Dashboard Data</button>
+          <button type="button" class="btn btn-primary" style="flex: 1;" onclick="adminViewUserDashboard()">View Dashboard</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="live-chat-btn" onclick="openChat()">
+    <span class="status-dot"></span>
+    <span>Chat</span>
+    <i class="fa-solid fa-comment" style="font-size: 0.9rem; margin-left: 2px;"></i>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <div class="logo-container">
+        <svg class="tesla-logo-svg" viewBox="0 0 342 35" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 .1a9.7 9.7 0 0 0 7 7h11v27.8h11.8V7.1h11a9.7 9.7 0 0 0 7-7H0zm238.6 0a9.7 9.7 0 0 0 7 7h11v27.8h11.8V7.1h11a9.7 9.7 0 0 0 7-7h-47.8zM53.8.1v34.8h41V23.6H65.6V18h26.2V6.8H65.6V0H53.8zm120.6 0v34.8h41V23.6h-29.2V18h26.2V6.8h-26.2V0h-11.8zm114.7 0v34.8h41V23.6h-29.2V18h26.2V6.8h-26.2V0h-11.8zM108.6 24c0 3.7 2.3 6.6 6.3 8.3l12 2.6V24h-18.3zm0-13h18.3V.1h-12c-4 1.7-6.3 4.6-6.3 8.3v2.6zm18.3 1.2h-18.3v10.6h18.3V12.2z"/>
+        </svg>
+        <div class="logo">NextGen.<span>Tesla</span></div>
+      </div>
+      <div class="nav-buttons" id="nav-actions">
+        <button class="btn btn-outline" onclick="openAuth('login')">Member Login</button>
+        <button class="btn btn-primary" onclick="openAuth('register')">Open Account</button>
+        <button class="btn btn-gold" onclick="openAdmin()">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="dashboard-view" class="hidden">
+    <div class="dash-nav-bar">
+      <a href="javascript:void(0)" id="tab-account" class="dash-tab active" onclick="switchDashTab(this, 'account')">MY ACCOUNT</a>
+      <a href="javascript:void(0)" id="tab-deposit" class="dash-tab" onclick="switchDashTab(this, 'deposit')">DEPOSIT</a>
+      <a href="javascript:void(0)" id="tab-history" class="dash-tab" onclick="switchDashTab(this, 'history')">DEPOSITS HISTORY</a>
+      <a href="javascript:void(0)" id="tab-withdraw" class="dash-tab" onclick="switchDashTab(this, 'withdraw')">WITHDRAW</a>
+      <a href="javascript:void(0)" id="tab-referrals" class="dash-tab" onclick="switchDashTab(this, 'referrals')">REFERRALS</a>
+      <a href="javascript:void(0)" id="admin-nav-link" onclick="openAdmin()">ADMIN PANEL</a>
+      <a href="javascript:void(0)" onclick="handleLogout()">LOGOUT</a>
+    </div>
+
+    <div class="dashboard-container">
+      <div class="dash-user-bar">
+        <div class="dash-welcome">
+          <i class="fa-solid fa-bars" style="color: var(--gold); font-size: 1.2rem; margin-right: 5px;"></i>
+          <i class="fa-solid fa-user-gear"></i>
+          <div>
+            <div style="font-size: 0.8rem; font-weight: bold; color: #ffffff;">WELCOME, <span id="user-display-name" style="color: var(--gold);"></span></div>
+          </div>
+        </div>
+
+        <div class="dash-affiliate">
+          <i class="fa-solid fa-key" style="color: var(--primary);"></i>
+          <span style="font-size: 0.7rem; font-weight: bold; color: #ffffff;">AFFILIATE LINK:</span>
+          <input type="text" id="affiliate-url" value="" readonly />
+          <button class="btn btn-primary" style="padding: 0.15rem 0.6rem; font-size: 0.7rem; border-radius: 4px;" onclick="copyAffiliate()">Get Banners</button>
+        </div>
+      </div>
+
+      <div id="dash-tab-content">
+      </div>
+
+      <div class="crypto-bar">
+        <div style="display: flex; gap: 2rem; align-items: center;">
+          <div>BTC NETWORK</div>
+          <div>WALLETS:</div>
+        </div>
+        <div class="crypto-providers-group">
+          <div class="crypto-provider">
+            <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" alt="Coinbase" />
+            <strong style="color:#fff;">coinbase</strong>
+          </div>
+          <div class="crypto-provider">
+            <img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" alt="Blockchain" />
+            <strong style="color:#fff;">BLOCKCHAIN</strong>
+          </div>
+          <div class="crypto-provider">
+            <img src="https://assets.coingecko.com/coins/images/325/small/Tether.png" alt="Xapo" />
+            <strong style="color:#fff;">xapo</strong>
+          </div>
+          <div class="crypto-provider">
+            <img src="https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png" alt="AirBitz" />
+            <strong style="color:#fff;">airBitz</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-ticker">
+        <div>Market Cap: <span style="color: var(--gold);">$77829716960.00</span> &nbsp;&nbsp; Hashrate: <span style="color: var(--gold);">7108353254.76</span> &nbsp;&nbsp; Difficulty: <span style="color: var(--gold);">888171856257</span> &nbsp;&nbsp; Total Blocks: <span style="color: var(--gold);">482882</span> &nbsp;&nbsp; Network Speed: <span style="color: var(--gold);">108.5 PH/s</span></div>
+      </div>
+
+      <div style="padding: 0.8rem 1.5rem; font-size: 0.7rem; color: var(--text-muted); background: #020b18;">
+        © 2026 Core.nextgenteslatrade.info All Rights Reserved.
+      </div>
+    </div>
+  </div>
+
+  <div id="landing-view">
+    <section class="hero">
+      <h1>Welcome to NextGen.Tesla</h1>
+      <p>Your Gateway to Global Investment Opportunities. Access cross-border investment opportunities with seamless deal syndication, fast investment processing, and daily profit payments without delay.</p>
+      <p>We work with financial advisers, wealth managers, and investor networks to make global investing simple, flexible, and rewarding.</p>
+      <p><strong>Invest Globally. Earn Daily. Grow Strategically.</strong></p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="openAuth('register')">Open An Account</button>
+        <button class="btn btn-outline" onclick="openAuth('login')">Member Login</button>
+      </div>
+    </section>
+
+    <section class="container">
+      <h2 class="section-title">About Nextgen.Tesla</h2>
+      <p class="about-text">
+        <strong>Nextgen.Tesla LTD</strong> is a legally registered Private Limited Company which was founded in 2018 in the UK and transformed into an open joint-stock company in order to provide access for everyone to financial products offered by prime.thekavout LTD.
+      </p>
+      <p class="about-text">
+        The Company is not a member, associate or subdivision of any other organization, so it is free to make totally independent decisions. Our team of full-time financial experts ensures effective and quick analysis of the current financial situation.
+      </p>
+
+      <div class="grid-2">
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" alt="DDoS Security" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>DDoS Protected System</h3>
+          <p>We use the highest level of protection. Our website can resist attacks of any size. Invest safely.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80" alt="Crypto Opportunities" class="feature-img" />
+          <div class="feature-icon"><i class="fa-brands fa-bitcoin"></i></div>
+          <h3>Crypto Opportunities</h3>
+          <p>Our investments are mainly into cryptocurrencies, and in this digital currency niche, we are always on the lookout for fantastic opportunities.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=600&q=80" alt="Safe Investments" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-user-shield"></i></div>
+          <h3>Safe & Easy Investments</h3>
+          <p>We have experienced professionals with dependable customer care skills who handle all aspects of the investment for you.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80" alt="Daily Plans" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+          <h3>Daily Plans</h3>
+          <p>We have rolled out three plans, and you are free to select any depending on your investment target.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container">
+      <h2 class="section-title">Nextgen.Tesla Investment Plan</h2>
+      <p class="section-subtitle">Choose from our daily return options</p>
+
+      <div class="grid-3">
+        <div class="plan-card">
+          <h3>Starter Plan</h3>
+          <div class="plan-rate">1.0%</div>
+          <p>Daily Lifetime</p>
+          <div class="plan-details">
+            <p>(Principal included)</p>
+            <p>Minimum deposit: <strong>$25</strong></p>
+            <p>Maximum deposit: <strong>$250</strong></p>
+          </div>
+          <button class="btn btn-primary" onclick="openAuth('register')">Make a deposit</button>
+        </div>
+
+        <div class="plan-card popular">
+          <h3>Pro Plan</h3>
+          <div class="plan-rate">1.5%</div>
+          <p>Daily Lifetime</p>
+          <div class="plan-details">
+            <p>(Principal included)</p>
+            <p>Minimum deposit: <strong>$251</strong></p>
+            <p>Maximum deposit: <strong>$1000</strong></p>
+          </div>
+          <button class="btn btn-primary" onclick="openAuth('register')">Make a deposit</button>
+        </div>
+
+        <div class="plan-card">
+          <h3>Executive Plan</h3>
+          <div class="plan-rate">2.0%</div>
+          <p>Daily Lifetime</p>
+          <div class="plan-details">
+            <p>(Principal included)</p>
+            <p>Minimum deposit: <strong>$1001</strong></p>
+            <p>Maximum deposit: <strong>Unlimited</strong></p>
+          </div>
+          <button class="btn btn-primary" onclick="openAuth('register')">Make a deposit</button>
+        </div>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 4rem;">Why Investors Choose Us</h2>
+      <p class="section-subtitle">See our features</p>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" alt="EV SSL" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+          <h3>EV SSL</h3>
+          <p>Our website is secured with 256-bit encryption from Comodo with Extended Validation.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=600&q=80" alt="Crypto Opportunities" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Crypto Opportunities</h3>
+          <p>Our investments are mainly into cryptocurrencies and strategic market trading.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1509017174183-0b7e0278f1ec?auto=format&fit=crop&w=600&q=80" alt="Daily Plans" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-clock"></i></div>
+          <h3>Daily Plans</h3>
+          <p>Automated daily earnings credited directly to your investor account balance.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=600&q=80" alt="Safe Investments" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <h3>Safe & Easy Investments</h3>
+          <p>Experienced managers handle technical aspects so you can invest with ease.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?auto=format&fit=crop&w=600&q=80" alt="Customer Support" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-headset"></i></div>
+          <h3>24/7 Customer Support</h3>
+          <p>We provide around-the-clock email and live chat assistance.</p>
+        </div>
+        <div class="feature-card">
+          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80" alt="UK Registered" class="feature-img" />
+          <div class="feature-icon"><i class="fa-solid fa-building"></i></div>
+          <h3>UK Registered Company</h3>
+          <p>Legally registered in the UK under “Nextgen.Tesla".</p>
+        </div>
+      </div>
+
+      <div class="metrics-bar">
+        <div>
+          <div class="metric-val">345</div>
+          <div class="metric-label">Running days</div>
+        </div>
+        <div>
+          <div class="metric-val">295,078</div>
+          <div class="metric-label">Total users</div>
+        </div>
+        <div>
+          <div class="metric-val">$3,523,006,754.00</div>
+          <div class="metric-label">Total deposits</div>
+        </div>
+        <div>
+          <div class="metric-val">$9,256,000.00</div>
+          <div class="metric-label">Total withdrawals</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container">
+      <h2 class="section-title">Nextgen.Tesla Statistics</h2>
+      <p class="section-subtitle">Our financial statistics | Ready to start earning with us? <a href="javascript:void(0)" onclick="openAuth('register')">Open an account</a></p>
+
+      <div class="grid-2">
+        <div class="stats-table-container">
+          <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-arrow-down-long" style="color:var(--accent)"></i> Last Deposits</h3>
+          <table class="stats-table">
+            <thead>
+              <tr><th>Username</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>nikobor</td><td>$50.00</td></tr>
+              <tr><td>tuyorfaty</td><td>$25.00</td></tr>
+              <tr><td>ProfitHuntersBIZ</td><td>$300.00</td></tr>
+              <tr><td>Bentrequetoi</td><td>$30.00</td></tr>
+              <tr><td>btcmonday</td><td>$100.00</td></tr>
+              <tr><td>profit5588</td><td>$25.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="stats-table-container">
+          <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-arrow-up-long" style="color:var(--warning)"></i> Last Withdrawals</h3>
+          <table class="stats-table">
+            <thead>
+              <tr><th>Username</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>James</td><td>$100,000.00</td></tr>
+              <tr><td>Frank</td><td>$25,000.00</td></tr>
+              <tr><td>Silva</td><td>$300,000.00</td></tr>
+              <tr><td>Hope</td><td>$30,000.00</td></tr>
+              <tr><td>Sandra</td><td>$10,000.00</td></tr>
+              <tr><td>profit5588</td><td>$350,000.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="money-banner">
+        <i class="fa-solid fa-sack-dollar"></i>
+        <h3 style="margin-top: 0.8rem;">Secure Financial Transactions</h3>
+        <p>Processed continuously with institutional-grade security protocols.</p>
+      </div>
+    </section>
+
+    <section class="container">
+      <h2 class="section-title">Recent Withdrawal</h2>
+      <p class="section-subtitle">Live activity stream of pending and confirmed transactions</p>
+
+      <div class="ticker-container" id="ticker-box">
+        <div class="ticker-item">
+          <div><strong>User_8921</strong> withdrawn <span style="color:var(--accent);">$1,250.00 BTC</span></div>
+          <span class="badge badge-confirmed">Confirmed</span>
+        </div>
+        <div class="ticker-item">
+          <div><strong>Alex_M</strong> requested payout of <span style="color:var(--gold);">$450.00 USDT</span></div>
+          <span class="badge badge-pending">Pending</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const BITCOIN_DEPOSIT_ADDRESS = "bc1qsc33q5rkel23c3lde8vzgcx79m5v7t2ptse0wr";
+    let currentUser = null;
+    let selectedEditingMemberKey = null;
+
+    function getStorageData(key, fallback) {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : fallback;
+    }
+
+    function setStorageData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function closeNotice() {
+      document.getElementById('notice-modal').classList.add('hidden');
+    }
+
+    function openAuth(type) {
+      const modal = document.getElementById('auth-modal');
+      const title = document.getElementById('auth-title');
+      if (type === 'login') {
+        title.innerText = "Member Login";
+      } else {
+        title.innerText = "Open Account";
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeAuth() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function openChat() {
+      const modal = document.getElementById('chat-modal');
+      const statusDisplay = document.getElementById('chat-status-display');
+      const currentStatus = localStorage.getItem('cs_status_message') || "Our live support agents are online and ready to assist you!";
+      statusDisplay.innerHTML = `<strong>Customer Service Status:</strong><br/>${currentStatus}`;
+      modal.classList.remove('hidden');
+    }
+
+    function closeChat() {
+      document.getElementById('chat-modal').classList.add('hidden');
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      alert("Thank you! Your message has been sent to our customer service team.");
+      document.getElementById('chat-user-email').value = '';
+      document.getElementById('chat-user-msg').value = '';
+      closeChat();
+    }
+
+    function openAdmin() {
+      const modal = document.getElementById('admin-modal');
+      const currentStatus = localStorage.getItem('cs_status_message') || "Our live support agents are online and ready to assist you!";
+      document.getElementById('admin-status-input').value = currentStatus;
+      modal.classList.remove('hidden');
+    }
+
+    function closeAdmin() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function handleAdminUpdate(e) {
+      e.preventDefault();
+      const newStatus = document.getElementById('admin-status-input').value;
+      localStorage.setItem('cs_status_message', newStatus);
+      alert("Customer Service Status Message updated successfully!");
+      closeAdmin();
+    }
+
+    /* --- ADMIN MEMBER MANAGEMENT FUNCTIONS --- */
+    function openAdminMemberManagement() {
+      closeAdmin();
+      renderAdminMemberList();
+      document.getElementById('admin-member-modal').classList.remove('hidden');
+    }
+
+    function closeAdminMemberModal() {
+      document.getElementById('admin-member-modal').classList.add('hidden');
+    }
+
+    function renderAdminMemberList() {
+      const users = getStorageData('registered_members', {});
+      const userKeys = Object.keys(users);
+      
+      document.getElementById('admin-total-members-count').innerText = userKeys.length;
+
+      const searchTerm = (document.getElementById('admin-member-search').value || '').toLowerCase();
+      const tbody = document.getElementById('admin-members-list-body');
+      tbody.innerHTML = '';
+
+      userKeys.forEach(key => {
+        const u = users[key];
+        const username = u.username || key;
+        const email = u.email || 'N/A';
+        const regDate = u.registrationDate || 'N/A';
+
+        if (username.toLowerCase().includes(searchTerm) || email.toLowerCase().includes(searchTerm)) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight: bold; color: #fff;">${username}</td>
+            <td style="color: var(--text-muted);">${email}</td>
+            <td style="font-size: 0.8rem; color: var(--text-muted);">${regDate}</td>
+            <td>
+              <button class="btn btn-gold" style="padding: 2px 8px; font-size: 0.75rem;" onclick="openAdminEditMember('${key}')">Manage</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    function openAdminEditMember(userKey) {
+      selectedEditingMemberKey = userKey;
+      const users = getStorageData('registered_members', {});
+      const u = users[userKey];
+      if (!u) return;
+
+      document.getElementById('admin-edit-target-username').innerText = u.username || userKey;
+      document.getElementById('edit-active-deposits').value = u.activeDeposits || "$0.00";
+      document.getElementById('edit-account-balance').value = u.accountBalance || "$0.00";
+      document.getElementById('edit-added-bonus').value = u.addedBonus || "$0.00";
+      document.getElementById('edit-last-deposit').value = u.lastDeposit || "$0.00";
+      document.getElementById('edit-withdrawal').value = u.withdrawal || "$0.00";
+      document.getElementById('edit-user-email').value = u.email || "";
+
+      closeAdminMemberModal();
+      document.getElementById('admin-edit-member-modal').classList.remove('hidden');
+    }
+
+    function closeAdminEditMemberModal() {
+      document.getElementById('admin-edit-member-modal').classList.add('hidden');
+    }
+
+    function handleAdminSaveMemberData(e) {
+      e.preventDefault();
+      if (!selectedEditingMemberKey) return;
+
+      const users = getStorageData('registered_members', {});
+      if (!users[selectedEditingMemberKey]) return;
+
+      users[selectedEditingMemberKey].activeDeposits = document.getElementById('edit-active-deposits').value;
+      users[selectedEditingMemberKey].accountBalance = document.getElementById('edit-account-balance').value;
+      users[selectedEditingMemberKey].addedBonus = document.getElementById('edit-added-bonus').value;
+      users[selectedEditingMemberKey].lastDeposit = document.getElementById('edit-last-deposit').value;
+      users[selectedEditingMemberKey].withdrawal = document.getElementById('edit-withdrawal').value;
+      users[selectedEditingMemberKey].email = document.getElementById('edit-user-email').value;
+
+      setStorageData('registered_members', users);
+
+      if (currentUser && currentUser.username.toLowerCase() === selectedEditingMemberKey) {
+        currentUser = users[selectedEditingMemberKey];
+        switchDashTab(document.getElementById('tab-account'), 'account');
+      }
+
+      alert("Member dashboard data updated successfully!");
+      closeAdminEditMemberModal();
+      openAdminMemberManagement();
+    }
+
+    function adminViewUserDashboard() {
+      if (!selectedEditingMemberKey) return;
+      const users = getStorageData('registered_members', {});
+      currentUser = users[selectedEditingMemberKey];
+
+      closeAdminEditMemberModal();
+
+      document.getElementById('user-display-name').innerText = currentUser.username.toUpperCase();
+      document.getElementById('landing-view').classList.add('hidden');
+      document.getElementById('nav-actions').classList.add('hidden');
+      document.getElementById('dashboard-view').classList.remove('hidden');
+
+      let currentOrigin = window.location.origin;
+      document.getElementById('affiliate-url').value = currentOrigin + "/?ref=" + currentUser.username;
+
+      switchDashTab(document.getElementById('tab-account'), 'account');
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const inputUsername = document.getElementById('auth-username').value.trim();
+      const inputEmail = document.getElementById('auth-email').value.trim();
+      if (!inputUsername) return;
+
+      const users = getStorageData('registered_members', {});
+      const userKey = inputUsername.toLowerCase();
+      const nowFormatted = new Date().toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+
+      if (!users[userKey]) {
+        users[userKey] = {
+          username: inputUsername,
+          email: inputEmail || `${inputUsername}@example.com`,
+          registrationDate: nowFormatted,
+          lastAccess: nowFormatted,
+          activeDeposits: "$0.00",
+          accountBalance: "$0.00",
+          addedBonus: "$0.00",
+          lastDeposit: "$0.00",
+          withdrawal: "$0.00"
+        };
+      } else {
+        users[userKey].lastAccess = nowFormatted;
+        if (inputEmail) users[userKey].email = inputEmail;
+      }
+
+      setStorageData('registered_members', users);
+      currentUser = users[userKey];
+
+      document.getElementById('user-display-name').innerText = currentUser.username.toUpperCase();
+
+      closeAuth();
+      document.getElementById('landing-view').classList.add('hidden');
+      document.getElementById('nav-actions').classList.add('hidden');
+      document.getElementById('dashboard-view').classList.remove('hidden');
+
+      let currentOrigin = window.location.origin;
+      document.getElementById('affiliate-url').value = currentOrigin + "/?ref=" + currentUser.username;
+
+      switchDashTab(document.getElementById('tab-account'), 'account');
+    }
+
+    function copyAffiliate() {
+      const copyText = document.getElementById('affiliate-url');
+      copyText.select();
+      navigator.clipboard.writeText(copyText.value);
+      alert("Affiliate link copied!");
+    }
+
+    function switchDashTab(el, tab) {
+      document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+      if(el) el.classList.add('active');
+
+      const content = document.getElementById('dash-tab-content');
+      
+      if (tab === 'account') {
+        const usernameVal = currentUser ? currentUser.username : '';
+        const regDateVal = currentUser ? currentUser.registrationDate : '';
+        const lastAccessVal = currentUser ? currentUser.lastAccess : '';
+        const activeDeposits = currentUser && currentUser.activeDeposits ? currentUser.activeDeposits : '$0.00';
+        const accountBalance = currentUser && currentUser.accountBalance ? currentUser.accountBalance : '$0.00';
+        const addedBonus = currentUser && currentUser.addedBonus ? currentUser.addedBonus : '$0.00';
+        const lastDeposit = currentUser && currentUser.lastDeposit ? currentUser.lastDeposit : '$0.00';
+        const withdrawal = currentUser && currentUser.withdrawal ? currentUser.withdrawal : '$0.00';
+
+        content.innerHTML = `
+          <!-- TradingView Widget -->
+          <div class="tradingview-widget-container">
+            <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=BITFINEX%3ABTCUSD&interval=1&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%7B%22id%22%3A%22BB%40tv-basicstudies%22%2C%22inputs%22%3A%7B%22length%22%3A20%2C%22stdDev%22%3A2%7D%7D%5D&theme=dark&style=1&timezone=Etc%2FUTC&studies_overlaid=false&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=localhost&utm_medium=widget&utm_campaign=chart&utm_term=BITFINEX%3ABTCUSD" style="width: 100%; height: 100%; border: none;"></iframe>
+          </div>
+          <div style="text-align: center; font-size: 0.75rem; color: #38bdf8; margin-top: -1rem; margin-bottom: 1.5rem;">Personal trading chart</div>
+
+          <div class="dash-section-title">ACCOUNT OVERVIEW</div>
+          <div class="overview-grid">
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-circle-user overview-card-icon-blue"></i>
+              </div>
+              <div class="overview-card-right">
+                <div>
+                  <div class="overview-card-title">Your username:</div>
+                  <div style="font-weight: bold; color: #fff; font-size: 1.1rem; margin-top: 0.2rem;">${usernameVal}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-regular fa-calendar-days overview-card-icon-blue"></i>
+              </div>
+              <div class="overview-card-right">
+                <div>
+                  <div class="overview-card-title">Registration Date:</div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.95rem; margin-top: 0.2rem;">${regDateVal}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-regular fa-clock overview-card-icon-blue"></i>
+              </div>
+              <div class="overview-card-right">
+                <div>
+                  <div class="overview-card-title">Last Access:</div>
+                  <div style="font-weight: bold; color: #fff; font-size: 0.95rem; margin-top: 0.2rem;">${lastAccessVal}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-coins overview-card-icon"></i>
+              </div>
+              <div class="overview-card-right">
+                <div class="overview-card-val">${activeDeposits}</div>
+                <div class="overview-card-title">ACTIVE DEPOSITS</div>
+                <button class="btn-dash-action" onclick="switchDashTab(document.getElementById('tab-deposit'), 'deposit')">MAKE A DEPOSIT</button>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-money-bill-wave overview-card-icon"></i>
+              </div>
+              <div class="overview-card-right">
+                <div class="overview-card-val">${accountBalance}</div>
+                <div class="overview-card-title">YOUR BALANCE</div>
+                <button class="btn-dash-action" onclick="switchDashTab(document.getElementById('tab-withdraw'), 'withdraw')">WITHDRAW FUNDS</button>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-hand-holding-dollar overview-card-icon"></i>
+              </div>
+              <div class="overview-card-right">
+                <div class="overview-card-val">${addedBonus}</div>
+                <div class="overview-card-title">ADDED BONUS</div>
+                <button class="btn-dash-action" onclick="switchDashTab(document.getElementById('tab-history'), 'history')">MY DEPOSITS</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-section-title">YOUR DEPOSITS/WITHDRAWALS</div>
+          <div class="deposit-withdraw-grid">
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-circle-dollar-to-slot overview-card-icon-blue"></i>
+              </div>
+              <div class="overview-card-right">
+                <div class="overview-card-val" style="color: var(--gold);">${lastDeposit}</div>
+                <div class="overview-card-title">LAST DEPOSIT</div>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <div class="overview-card-left">
+                <i class="fa-solid fa-money-bill-transfer overview-card-icon-blue"></i>
+              </div>
+              <div class="overview-card-right">
+                <div class="overview-card-val" style="color: var(--gold);">${withdrawal}</div>
+                <div class="overview-card-title">WITHDRAWAL</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'deposit') {
+        content.innerHTML = `
+          <div class="deposit-box">
+            <h2>Make a Bitcoin Deposit</h2>
+            <p style="color:var(--text-muted); margin-top: 0.5rem;">Send your desired deposit amount to the official company Bitcoin wallet below:</p>
+            <div class="btc-address-box">
+              <span style="font-weight: bold; color: var(--gold); font-size: 0.95rem;">${BITCOIN_DEPOSIT_ADDRESS}</span>
+              <button class="btn btn-gold" onclick="copyBtcAddr()">Copy BTC Address</button>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'history') {
+        content.innerHTML = `<div class="deposit-box"><h2>Deposit History</h2><p style="color:var(--text-muted);">No recent deposit records found.</p></div>`;
+      } else if (tab === 'withdraw') {
+        content.innerHTML = `<div class="deposit-box"><h2>Withdraw Funds</h2><p style="color:var(--text-muted);">Your current balance is available for withdrawal processing.</p></div>`;
+      } else if (tab === 'referrals') {
+        content.innerHTML = `<div class="deposit-box"><h2>Your Referrals</h2><p style="color:var(--text-muted);">Total Referral Earnings: $0.00 (0 Active Commission Partners)</p></div>`;
+      }
+    }
+
+    function copyBtcAddr() {
+      navigator.clipboard.writeText(BITCOIN_DEPOSIT_ADDRESS);
+      alert("Bitcoin address copied to clipboard!");
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('dashboard-view').classList.add('hidden');
+      document.getElementById('landing-view').classList.remove('hidden');
+      document.getElementById('nav-actions').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
