@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextGen.Tesla | Admin</title>
+<style>
+:root{--bg:#020b18;--card:#061a37;--border:#004080;--blue:#0080ff;--gold:#ffcc00;--muted:#8ab4f8}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{margin:0;padding:20px;background:var(--bg);color:#f8fafc;min-height:100vh}
+.wrap{max-width:1100px;margin:auto}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:18px}
+h1{margin:0 0 10px}h2{margin-top:0}.warning{color:#fca5a5;line-height:1.6}
+label{display:block;color:var(--muted);margin:8px 0 5px}
+input,textarea{width:100%;padding:12px;background:var(--bg);color:white;border:1px solid var(--border);border-radius:7px;margin-bottom:12px}
+button,a{padding:10px 15px;border:0;border-radius:6px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.blue{background:var(--blue);color:white}.gold{background:var(--gold);color:#000}
+.hidden{display:none!important}.buttons{display:flex;gap:10px;flex-wrap:wrap}
+.table-wrap{overflow-x:auto}.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.table th{color:var(--muted);font-size:.8rem}.empty{color:var(--muted);text-align:center;padding:20px}
+.details{border:1px solid var(--border);border-radius:8px;padding:15px}
+.detail{display:flex;justify-content:space-between;gap:20px;padding:9px 0;border-bottom:1px solid #12365c}
+.detail:last-child{border:0}.label{color:var(--muted)}
+@media(max-width:600px){body{padding:10px}.card{padding:18px}.detail{flex-direction:column;gap:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+<h1>NextGen.<span style="color:#0080ff">Tesla</span> Admin</h1>
+<p class="warning">Separate administrator interface. This browser-side login is not production-grade security. Use proper server-side authorization before handling real member or financial data.</p>
+</div>
+
+<section id="login" class="card">
+<h2>Administrator Login</h2>
+<form id="loginForm">
+<label for="username">Admin username</label>
+<input id="username" autocomplete="username" required>
+<label for="password">Admin password</label>
+<input id="password" type="password" autocomplete="current-password" required>
+<button class="blue" type="submit">Sign in</button>
+</form>
+</section>
+
+<section id="panel" class="hidden">
+<div class="card">
+<div class="buttons">
+<button id="logout" class="gold" type="button">Logout</button>
+<a class="blue" href="index.html">Member Site</a>
+</div>
+</div>
+
+<div class="card">
+<h2>Registered Members</h2>
+<input id="search" type="search" placeholder="Search username or email">
+<div class="table-wrap">
+<table class="table">
+<thead><tr><th>Username</th><th>Email</th><th>Registration</th><th>Action</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+<div id="empty" class="empty hidden">No registered members found.</div>
+</div>
+
+<div id="detailsCard" class="card hidden">
+<h2>Member Information</h2>
+<div id="details" class="details"></div>
+</div>
+
+<div class="card">
+<h2>Customer Service Status</h2>
+<textarea id="status" rows="5" placeholder="Enter customer service message..."></textarea>
+<button id="saveStatus" class="gold" type="button">Save Status</button>
+<p id="saved" style="color:#8ab4f8"></p>
+</div>
+</section>
+</div>
+
+<script>
+const ADMIN_USERNAME="tundeex";
+const ADMIN_PASSWORD="Babatunde177";
+
+const login=document.getElementById("login");
+const panel=document.getElementById("panel");
+const loginForm=document.getElementById("loginForm");
+const logout=document.getElementById("logout");
+const search=document.getElementById("search");
+const rows=document.getElementById("rows");
+const empty=document.getElementById("empty");
+const detailsCard=document.getElementById("detailsCard");
+const details=document.getElementById("details");
+const status=document.getElementById("status");
+const saveStatus=document.getElementById("saveStatus");
+const saved=document.getElementById("saved");
+
+loginForm.addEventListener("submit",function(e){
+e.preventDefault();
+const u=document.getElementById("username").value.trim();
+const p=document.getElementById("password").value;
+if(u===ADMIN_USERNAME&&p===ADMIN_PASSWORD){
+sessionStorage.setItem("nextgen_admin","1");
+showPanel();
+}else{
+alert("Invalid administrator credentials.");
+}
+});
+
+function showPanel(){
+login.classList.add("hidden");
+panel.classList.remove("hidden");
+status.value=localStorage.getItem("cs_status_message")||"Our live support agents are online and ready to assist you!";
+renderMembers();
+}
+
+logout.addEventListener("click",function(){
+sessionStorage.removeItem("nextgen_admin");
+location.reload();
+});
+
+function getMembers(){
+try{return JSON.parse(localStorage.getItem("registered_members")||"{}");}
+catch(e){return {};}
+}
+
+function renderMembers(){
+const members=getMembers();
+const q=search.value.trim().toLowerCase();
+rows.innerHTML="";
+let count=0;
+
+Object.keys(members).forEach(function(key){
+const m=members[key]||{};
+const username=String(m.username||key);
+const email=String(m.email||"");
+const date=String(m.registrationDate||"");
+
+if(username.toLowerCase().includes(q)||email.toLowerCase().includes(q)){
+count++;
+const tr=document.createElement("tr");
+const a=document.createElement("td");a.textContent=username;
+const b=document.createElement("td");b.textContent=email;
+const c=document.createElement("td");c.textContent=date;
+const d=document.createElement("td");
+const btn=document.createElement("button");
+btn.className="gold";btn.type="button";btn.textContent="View";
+btn.addEventListener("click",function(){viewMember(key);});
+d.appendChild(btn);
+tr.append(a,b,c,d);rows.appendChild(tr);
+}
+});
+empty.classList.toggle("hidden",count!==0);
+}
+
+function viewMember(key){
+const m=getMembers()[key];
+if(!m){alert("Member information could not be found.");return;}
+details.innerHTML="";
+addDetail("Username",m.username||key);
+addDetail("Email",m.email||"Not provided");
+addDetail("Registration Date",m.registrationDate||"Not available");
+addDetail("Account Status",m.status||"Active");
+detailsCard.classList.remove("hidden");
+detailsCard.scrollIntoView({behavior:"smooth"});
+}
+
+function addDetail(label,value){
+const row=document.createElement("div");row.className="detail";
+const l=document.createElement("span");l.className="label";l.textContent=label;
+const v=document.createElement("span");v.textContent=value;
+row.append(l,v);details.appendChild(row);
+}
+
+search.addEventListener("input",renderMembers);
+
+saveStatus.addEventListener("click",function(){
+localStorage.setItem("cs_status_message",status.value);
+saved.textContent="Customer service status saved successfully.";
+setTimeout(()=>saved.textContent="",3000);
+});
+
+if(sessionStorage.getItem("nextgen_admin")==="1")showPanel();
+</script>
+</body>
+</html>
