@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextGen.Tesla | Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#020b18;--card:#061a37;--border:#004080;--blue:#0080ff;--gold:#ffcc00;--muted:#8ab4f8;--danger:#ff5c5c;--green:#45d483}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+html,body{margin:0;width:100%;min-width:0;overflow-x:hidden}
+body{padding:20px;background:var(--bg);color:#f8fafc;min-height:100vh}
+.wrap{max-width:1200px;width:100%;margin:auto}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:18px}
+h1{margin:0 0 10px}h2{margin-top:0}label{display:block;color:var(--muted);margin:8px 0 5px}
+input,textarea,select{width:100%;padding:12px;background:var(--bg);color:white;border:1px solid var(--border);border-radius:7px;margin-bottom:12px}
+button,a{padding:10px 15px;border:0;border-radius:6px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+button:disabled{opacity:.55;cursor:not-allowed}.blue{background:var(--blue);color:white}.gold{background:var(--gold);color:#000}.danger{background:var(--danger);color:#fff}.green{background:var(--green);color:#061a37}
+.hidden{display:none!important}.buttons{display:flex;gap:10px;flex-wrap:wrap}.muted{color:var(--muted)}
+.table-wrap{overflow-x:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}.table th{color:var(--muted);font-size:.8rem}
+.empty{color:var(--muted);text-align:center;padding:20px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.details{border:1px solid var(--border);border-radius:8px;padding:15px}.detail{display:flex;justify-content:space-between;gap:20px;padding:9px 0;border-bottom:1px solid #12365c}.detail:last-child{border:0}.label{color:var(--muted)}
+.notice{padding:12px;border-radius:8px;background:#0b2448;color:#dbeafe;margin-bottom:15px}.error{color:#ffb4b4}.success{color:#9ff0bd}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#12365c;font-size:.78rem}
+@media(max-width:700px){body{padding:10px}.card{padding:18px}.grid{grid-template-columns:1fr}.detail{flex-direction:column;gap:4px}.table th,.table td{padding:9px;font-size:.82rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>NextGen.<span style="color:#0080ff">Tesla</span> Admin</h1>
+    <p class="muted">Secure administrator area. Member data is loaded from Supabase and dashboard changes are saved to the database.</p>
+    <div id="message" class="notice hidden"></div>
+  </div>
+
+  <section id="login" class="card">
+    <h2>Administrator Login</h2>
+    <p class="muted">Sign in with the email and password of the Supabase account whose profile has <strong>role = admin</strong>.</p>
+    <form id="loginForm">
+      <label for="adminEmail">Admin email</label>
+      <input id="adminEmail" type="email" autocomplete="username" required>
+      <label for="adminPassword">Admin password</label>
+      <input id="adminPassword" type="password" autocomplete="current-password" required>
+      <button id="loginBtn" class="blue" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <section id="panel" class="hidden">
+    <div class="card">
+      <div class="buttons">
+        <button id="logout" class="gold" type="button">Logout</button>
+        <a class="blue" href="index.html">Member Site</a>
+      </div>
+      <p id="adminIdentity" class="muted"></p>
+    </div>
+
+    <div class="card">
+      <h2>Registered Members</h2>
+      <input id="search" type="search" placeholder="Search username or email">
+      <p class="muted" style="font-size:.85rem;">Select <strong>Open Dashboard</strong> to view that member's actual dashboard in secure Admin Mode.</p>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Username</th><th>Email</th><th>Status</th><th>Balance</th><th>Investment</th><th>Earnings</th><th>Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty hidden">No registered members found.</div>
+    </div>
+
+    <div id="editCard" class="card hidden" aria-hidden="true">
+      <h2>Edit Member Dashboard</h2>
+      <p id="editingMember" class="muted"></p>
+      <form id="editForm">
+        <div class="grid">
+          <div>
+            <label for="editStatus">Account Status</label>
+            <select id="editStatus"><option>Active</option><option>Suspended</option><option>Pending</option></select>
+          </div>
+          <div>
+            <label for="editPlan">Investment Plan</label>
+            <input id="editPlan" placeholder="e.g. Basic Plan">
+          </div>
+          <div>
+            <label for="editBalance">Balance</label>
+            <input id="editBalance" type="number" min="0" step="0.01" inputmode="decimal">
+          </div>
+          <div>
+            <label for="editInvestment">Investment Amount</label>
+            <input id="editInvestment" type="number" min="0" step="0.01" inputmode="decimal">
+          </div>
+          <div>
+            <label for="editEarnings">Earnings / Profit</label>
+            <input id="editEarnings" type="number" min="0" step="0.01" inputmode="decimal">
+          </div>
+        </div>
+        <div class="buttons">
+          <button id="saveMember" class="green" type="submit">Save Dashboard Changes</button>
+          <button id="cancelEdit" class="gold" type="button">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="detailsCard" class="card hidden">
+      <h2>Member Information</h2>
+      <div id="details" class="details"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const SUPABASE_URL = "https://umxfsrglfdoweeqfgbfv.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LOaVirv-9mgbcR-JZwBKQQ_lodd7CE6";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const login = document.getElementById('login');
+const panel = document.getElementById('panel');
+const loginForm = document.getElementById('loginForm');
+const loginBtn = document.getElementById('loginBtn');
+const logout = document.getElementById('logout');
+const search = document.getElementById('search');
+const rows = document.getElementById('rows');
+const empty = document.getElementById('empty');
+const editCard = document.getElementById('editCard');
+const editForm = document.getElementById('editForm');
+const cancelEdit = document.getElementById('cancelEdit');
+const detailsCard = document.getElementById('detailsCard');
+const details = document.getElementById('details');
+const message = document.getElementById('message');
+const adminIdentity = document.getElementById('adminIdentity');
+
+let profiles = [];
+let dashboards = {};
+let selectedMember = null;
+
+function showMessage(text, type='notice'){
+  message.textContent = text;
+  message.className = 'notice ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+  message.classList.remove('hidden');
+}
+function clearMessage(){message.classList.add('hidden');message.textContent='';}
+function money(v){return Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+async function verifyAdmin(user){
+  if(!user) return false;
+  const {data,error} = await supabaseClient
+    .from('profiles')
+    .select('username,email,role')
+    .eq('id', user.id)
+    .single();
+  if(error || !data) throw new Error('Your profile could not be verified.');
+  if(data.role !== 'admin') throw new Error('This account is not authorized as an administrator.');
+  adminIdentity.textContent = 'Signed in as ' + (data.username || data.email || user.email) + ' • Administrator';
+  return true;
+}
+
+async function loadData(){
+  clearMessage();
+  const [{data:profileData,error:profileError},{data:dashboardData,error:dashboardError}] = await Promise.all([
+    supabaseClient.from('profiles').select('id,username,email,role,created_at,referred_by').order('created_at',{ascending:false}),
+    supabaseClient.from('member_dashboard').select('user_id,account_status,balance,investment_amount,investment_plan,earnings,updated_at,created_at')
+  ]);
+  if(profileError) throw profileError;
+  if(dashboardError) throw dashboardError;
+  profiles = profileData || [];
+  dashboards = {};
+  (dashboardData || []).forEach(d => dashboards[d.user_id] = d);
+  renderMembers();
+}
+
+function renderMembers(){
+  const q = search.value.trim().toLowerCase();
+  rows.innerHTML = '';
+  let count = 0;
+  profiles.forEach(m => {
+    const username = String(m.username || '');
+    const email = String(m.email || '');
+    if(!username.toLowerCase().includes(q) && !email.toLowerCase().includes(q)) return;
+    count++;
+    const d = dashboards[m.id] || {};
+    const tr = document.createElement('tr');
+    [username || '—', email || '—', d.account_status || 'Active', money(d.balance), money(d.investment_amount), money(d.earnings)].forEach(value => {
+      const td=document.createElement('td'); td.textContent=value; tr.appendChild(td);
+    });
+    const td=document.createElement('td');
+    const btn=document.createElement('button'); btn.className='gold'; btn.type='button'; btn.textContent='Open Dashboard';
+    btn.addEventListener('click',()=>openMemberDashboard(m));
+    td.appendChild(btn); tr.appendChild(td); rows.appendChild(tr);
+  });
+  empty.classList.toggle('hidden', count !== 0);
+}
+
+function openMemberDashboard(member){
+  if(!member || !member.id) return;
+  window.location.href = 'index.html?admin_member=' + encodeURIComponent(member.id);
+}
+
+function openEditor(member){
+  selectedMember = member;
+  const d = dashboards[member.id] || {};
+  document.getElementById('editingMember').textContent = 'Editing: ' + (member.username || member.email) + ' • ' + (member.email || '');
+  document.getElementById('editStatus').value = d.account_status || 'Active';
+  document.getElementById('editPlan').value = d.investment_plan || 'No Plan';
+  document.getElementById('editBalance').value = Number(d.balance || 0);
+  document.getElementById('editInvestment').value = Number(d.investment_amount || 0);
+  document.getElementById('editEarnings').value = Number(d.earnings || 0);
+  editCard.classList.remove('hidden');
+  renderDetails(member,d);
+  editCard.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderDetails(member,d){
+  details.innerHTML='';
+  addDetail('Username',member.username || 'Not provided');
+  addDetail('Email',member.email || 'Not provided');
+  addDetail('Role',member.role || 'member');
+  addDetail('Registered',member.created_at ? new Date(member.created_at).toLocaleString() : 'Not available');
+  addDetail('Referred by',member.referred_by || 'None');
+  const referralCount = profiles.filter(p => p.referred_by && member.username && p.referred_by.toLowerCase() === member.username.toLowerCase()).length;
+  addDetail('Referrals',String(referralCount));
+  addDetail('Dashboard status',d.account_status || 'Active');
+  addDetail('Balance',money(d.balance));
+  addDetail('Investment',money(d.investment_amount));
+  addDetail('Plan',d.investment_plan || 'No Plan');
+  addDetail('Earnings',money(d.earnings));
+}
+function addDetail(label,value){
+  const row=document.createElement('div');row.className='detail';
+  const l=document.createElement('span');l.className='label';l.textContent=label;
+  const v=document.createElement('span');v.textContent=value;
+  row.append(l,v);details.appendChild(row);
+}
+
+loginForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  clearMessage(); loginBtn.disabled=true; loginBtn.textContent='Signing in...';
+  try{
+    const email=document.getElementById('adminEmail').value.trim();
+    const password=document.getElementById('adminPassword').value;
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    await verifyAdmin(data.user);
+    await loadData();
+    login.classList.add('hidden'); panel.classList.remove('hidden');
+  }catch(err){
+    await supabaseClient.auth.signOut();
+    showMessage(err.message || 'Administrator login failed.','error');
+  }finally{loginBtn.disabled=false;loginBtn.textContent='Sign in';}
+});
+
+editForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!selectedMember) return;
+  const save=document.getElementById('saveMember'); save.disabled=true; save.textContent='Saving...'; clearMessage();
+  try{
+    const payload={
+      user_id:selectedMember.id,
+      account_status:document.getElementById('editStatus').value,
+      investment_plan:document.getElementById('editPlan').value.trim() || 'No Plan',
+      balance:Number(document.getElementById('editBalance').value || 0),
+      investment_amount:Number(document.getElementById('editInvestment').value || 0),
+      earnings:Number(document.getElementById('editEarnings').value || 0)
+    };
+    if([payload.balance,payload.investment_amount,payload.earnings].some(v=>!Number.isFinite(v)||v<0)) throw new Error('Enter valid non-negative amounts.');
+    const {data,error}=await supabaseClient.from('member_dashboard').upsert(payload,{onConflict:'user_id'}).select().single();
+    if(error) throw error;
+    dashboards[selectedMember.id]=data;
+    renderMembers(); renderDetails(selectedMember,data);
+    showMessage('Member dashboard updated successfully.','success');
+  }catch(err){showMessage(err.message || 'Could not save dashboard changes.','error');}
+  finally{save.disabled=false;save.textContent='Save Dashboard Changes';}
+});
+
+cancelEdit.addEventListener('click',()=>{selectedMember=null;editCard.classList.add('hidden');detailsCard.classList.add('hidden');clearMessage();});
+search.addEventListener('input',renderMembers);
+
+logout.addEventListener('click',async()=>{await supabaseClient.auth.signOut();location.reload();});
+
+(async function init(){
+  try{
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    if(!session) return;
+    await verifyAdmin(session.user);
+    await loadData();
+    login.classList.add('hidden');panel.classList.remove('hidden');
+  }catch(err){await supabaseClient.auth.signOut();showMessage(err.message || 'Please sign in as an administrator.','error');}
+})();
+</script>
+</body>
+</html>
